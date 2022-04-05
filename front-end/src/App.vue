@@ -45,10 +45,66 @@ export default {
         boxShadowFocus: "0 0 8px 0 var(--accent-color)",
         border: "0px solid #000000",
       },
-      test: "test",
+      data: {},
+      // values: async () => {
+      //   let data = await fetch("http://localhost:3001/api/data")
+      //     .then((response) => response.json())
+      //     .then((data) => console.log(data));
+      //   return data;
+      // },
     };
   },
+  created() {
+    this.getData();
+    // .then((data) => console.log(JSON.stringify(data)));
+  },
+  methods: {
+    // test: function () {
+    //   console.log("in test");
+    //   this.getData();
+    // },
+    async getData() {
+      try {
+        // let response = await fetch("/api/data");
+        // response
+        let response = await fetch("http://localhost:3001/api/data");
+        let data = await response.json();
+        // console.log(data);
+        this.data = data[0];
+        return this.data;
+        // .then((response) => {
+        //   response.json();
+        //   console.log(JSON.stringify(response));
+        // })
+        // .then((data) => {
+        //   this.data = data;
+        //   console.log(data);
+        // })
+        // .catch((error) => console.log(error));
+        // this.items = response.data;
+        return true;
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    updateData: function () {
+      console.log("in the updateData function");
+      return this.getData();
+    },
+    testFunction: function () {
+      console.log("did it work");
+    },
+  },
+  // computed: {
+  //   theData: function () {
+  //     let data = fetch("http://localhost:3001/api/data")
+  //       .then((response) => response.json())
+  //       .then((data) => console.log(data));
+  //     return data;
+  //   },
+  // },
 };
+
 // export default defineComponent({});
 </script>
 

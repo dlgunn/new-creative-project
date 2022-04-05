@@ -1,5 +1,5 @@
 <template>
-  <template v-for="(story, number) in data.stories">
+  <template v-for="(story, number) in this.$root.$data.data.stories">
     <h2>{{ story.title }}</h2>
     <template v-for="(part, key) in story.parts">
       <h4>Part {{ key + 1 }} ~ {{ part.date }}</h4>
@@ -27,7 +27,7 @@
             <div class="comment-input">
               <n-input
                 size="small"
-                v-model:value="value"
+                v-model:value="isShown[number][key].name"
                 type="text"
                 placeholder="Name"
                 :theme="darkTheme"
@@ -38,6 +38,7 @@
               <n-input
                 type="textarea"
                 size="small"
+                v-model:value="isShown[number][key].comment"
                 placeholder="Write a Comment"
                 :autosize="{
                   minRows: 3,
@@ -45,7 +46,12 @@
                 :theme="darkTheme"
                 :theme-overrides="themeOverrides"
               />
-              <n-button ghost color="rgb(189, 107, 0)">Submit</n-button>
+              <n-button
+                @click="addComment(number, key, story._id, part._id)"
+                ghost
+                color="rgb(189, 107, 0)"
+                >Submit</n-button
+              >
             </div>
           </div>
 
@@ -87,54 +93,118 @@ export default defineComponent({
   },
   data() {
     return {
-      themeOverrides: {
-        caretColor: "var(--accent-color)",
-        boderColor: "var(--accent-color)",
-        borderFocus: "var(--accent-color)",
-        borderHover: "1px solid var(--accent-color)",
-        borderFocus: "1px solid var(--accent-color)",
-        // colorFocus: "rgb(189, 107, 0)"
-        boxShadowFocus: "0 0 8px 0 var(--accent-color)",
-        border: "0px solid #000000",
-      },
+      themeOverrides: this.$root.$data.themeOverrides,
+      // themeOverrides: {
+      //   caretColor: "var(--accent-color)",
+      //   boderColor: "var(--accent-color)",
+      //   borderFocus: "var(--accent-color)",
+      //   borderHover: "1px solid var(--accent-color)",
+      //   borderFocus: "1px solid var(--accent-color)",
+      //   // colorFocus: "rgb(189, 107, 0)"
+      //   boxShadowFocus: "0 0 8px 0 var(--accent-color)",
+      //   border: "0px solid #000000",
+      // },
       data,
       isShown: {},
+      tempCommentVals: [],
     };
+  },
+  computed: {
+    // storyData: function () {
+    //   // console.log(this.$root.$data.data);
+    //   this.$root.$emit("myemit");
+    // },
   },
 
   methods: {
-    test() {
-      console.log("hello");
-      // console.log();
-      const data = { name: "example" };
-      console.log(this.data);
-      return;
-
-      fetch("http://localhost:3001/api/test", {
-        // mode: "no-cors",
-        method: "POST", // or 'PUT'
+    // please: function () {
+    //   // this.$root.test();
+    // },
+    addComment(storyNum, sectionNum, storyId, sectionId) {
+      if (
+        !this.isShown[storyNum][sectionNum].name ||
+        !this.isShown[storyNum][sectionNum].comment
+      ) {
+        return;
+      }
+      let data = {
+        name: this.isShown[storyNum][sectionNum].name,
+        comment: this.isShown[storyNum][sectionNum].comment,
+        upvotes: 0,
+      };
+      // console.log(data);
+      fetch(`http://localhost:3001/api/data/${storyId}/${sectionId}`, {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
       })
-        .then((response) => response.json())
+        .then((response) => resonse.json())
         .then((data) => {
           console.log("Success:", data);
         })
         .catch((error) => {
-          console.error("Error:", error);
+          console.log("Error:", error);
         });
+      // console.log("trying to update");
+      // this.$root.$emit("update-event");
+      // getData().then((response) => console.log(response));
+      // console.log("hopefully updated");
     },
+    // updateData: function () {
+    //   this.data = this.$root.updateData;
+    // },
+    // test(id) {
+    //   // console.log("hello");
+    //   // console.log(`data is ${this.$root.$data.values}`);
+    //   // console.log(`better data is ${this.$root.$data.theData}`);
+    //   // // console.log();
+    //   // const data = { name: "example" };
+    //   // console.log(this.data);
+    //   let data = { name: "bob", comment: "It worked!", upvotes: 20 };
+    //   console.log(id);
+    //   fetch(`http://localhost:3001/api/data/${id}/123`, {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //     body: JSON.stringify(data),
+    //   })
+    //     .then((response) => response.json())
+    //     .then((data) => {
+    //       console.log("Success:", data);
+    //     })
+    //     .catch((error) => {
+    //       console.error("Error:", error);
+    //     });
+    //   return;
+
+    //   fetch("http://localhost:3001/api/test", {
+    //     // mode: "no-cors",
+    //     method: "POST", // or 'PUT'
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //     body: JSON.stringify(data),
+    //   })
+    //     .then((response) => response.json())
+    //     .then((data) => {
+    //       console.log("Success:", data);
+    //     })
+    //     .catch((error) => {
+    //       console.error("Error:", error);
+    //     });
+    // },
     addToShown(storyNum, part) {
       if (!this.isShown[storyNum]) {
         this.isShown[storyNum] = {};
       }
       if (!this.isShown[storyNum][part]) {
-        this.isShown[storyNum][part] = true;
+        this.isShown[storyNum][part] = { name: "", comment: "", show: true };
         return;
       }
-      this.isShown[storyNum][part] = !this.isShown[storyNum][part];
+      this.isShown[storyNum][part].show = !this.isShown[storyNum][part].show;
       // this.isShown[storyNum] = {};
       // this.isShown[storyNum][part] = true;
       console.log(this.isShown);
@@ -144,7 +214,7 @@ export default defineComponent({
       if (!this.isShown[storyNum]) {
         return false;
       }
-      if (!this.isShown[storyNum][part]) {
+      if (!this.isShown[storyNum][part].show) {
         return false;
       }
       return true;

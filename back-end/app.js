@@ -14,7 +14,7 @@ app.use(express.json());
 const cors = require("cors");
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: "*",
   })
 );
 
@@ -50,6 +50,7 @@ const dataSchema = new mongoose.Schema({
 });
 
 const Data = mongoose.model("Data", dataSchema);
+// const Story = mongoose.model("Story", storySchema);
 // const data = new Data({
 //   stories: [
 //     {
@@ -86,10 +87,53 @@ app.get("/api/data", async (req, res) => {
   }
 });
 
-app.post("/api/data", async (req, res) => {
+app.post("/api/data/:storyid/:sectionid", async (req, res) => {
+  try {
+    let newComment = {
+      name: req.body.name,
+      comment: req.body.comment,
+      upvotes: req.body.upvotes,
+    };
+    await Data.updateOne(
+      { "stories.parts._id": req.params.sectionid },
+      { $push: { "stories.$[n].parts.$[m].comments": newComment } },
+      {
+        arrayFilters: [
+          { "n._id": req.params.storyid },
+          { "m._id": req.params.sectionid },
+        ],
+      }
+    );
+    // item.save();
+    // console.log(newComment);
+    // let document = await Data.find();
+    // console.log(`document is ${document}`);
+    // console.log(story);
+  } catch (error) {
+    console.log(error);
+    res.sendStatus(500);
+  }
   const data = new Data({
     stories: [],
   });
+});
+
+app.post("/api/data/:storyid/:sectionid/:commentid", async (req, res) => {
+  try {
+    await Data.updateOne(
+      { "stories.parts.comments.commetn._id": req.params.commentid },
+      { $inc: { "stories.$[n].parts.$[m].comments.$[q].comment": 1 } },
+      {
+        arrayFilters: [
+          { "n._id": req.params.storyid },
+          { "m._id": req.params.sectionid },
+          { "q._id": req.params.commentid },
+        ],
+      }
+    );
+  } catch (error) {
+    console.log(error);
+  }
 });
 
 // app.post("/api/test", async (req, res) => {
