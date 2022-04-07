@@ -1,15 +1,40 @@
 <template>
-  <template v-for="(story, number) in this.$root.$data.data.stories">
+  <n-dropdown
+    trigger="hover"
+    :options="options"
+    @select="handlesSelect"
+    :theme="darkTheme"
+  >
+    <n-button
+      @click="upvoteSection(number, key, story._id, part._id)"
+      ghost
+      color="rgb(189, 107, 0)"
+      >Select Story</n-button
+    >
+  </n-dropdown>
+  <template v-for="(story, number) in data.stories">
     <h2>{{ story.title }}</h2>
     <template v-for="(part, key) in story.parts">
-      <h4>Part {{ key + 1 }} ~ {{ part.date }}</h4>
+      <h4>Part {{ key + 1 }}</h4>
       <section>
         <p v-for="paragraph in part.content">{{ paragraph }}</p>
       </section>
       <div class="options">
         <p>
-          <span class="upvote-icon">👍</span> {{ part.upvotes }}
-          <span class="downvote-icon">👎</span> {{ part.downvotes }}
+          <n-button
+            @click="upvoteSection(number, key, story._id, part._id)"
+            text
+            ghost
+            color="rgb(189, 107, 0)"
+            >👍</n-button
+          >{{ part.upvotes }}
+          <n-button
+            @click="downvoteSection(number, key, story._id, part._id)"
+            text
+            ghost
+            color="rgb(189, 107, 0)"
+            >👎</n-button
+          >{{ part.downvotes }}
         </p>
 
         <n-button
@@ -18,8 +43,43 @@
           color="rgb(189, 107, 0)"
           >{{ commentKey(checkIfShown(number, key)) }} Comments</n-button
         >
-        <n-button ghost color="rgb(189, 107, 0)">Add to Story</n-button>
+        <!-- <n-button
+          @click="addSection(number, key)"
+          ghost
+          color="rgb(189, 107, 0)"
+          >Add to Story</n-button
+        > -->
+        <n-button
+          @click="toggleEdit(number, key)"
+          ghost
+          color="rgb(189, 107, 0)"
+          >{{
+            checkIfEditing(number, key) ? "Hide edit" : "Edit part"
+          }}</n-button
+        >
       </div>
+      <template v-if="checkIfEditing(number, key)">
+        <div class="edit-area">
+          <h3>Edit</h3>
+          <n-input
+            type="textarea"
+            size="small"
+            v-model:value="isShown[number][key].content"
+            placeholder="Write!"
+            :autosize="{
+              minRows: 10,
+            }"
+            :theme="darkTheme"
+            :theme-overrides="themeOverrides"
+          />
+          <n-button
+            @click="updateSection(number, key, story._id, part._id)"
+            ghost
+            color="rgb(189, 107, 0)"
+            >Post Edit!</n-button
+          >
+        </div>
+      </template>
       <template v-if="checkIfShown(number, key)">
         <div class="comment-section">
           <h3>Comments</h3>
@@ -55,15 +115,28 @@
             </div>
           </div>
 
-          <div v-for="comment in part.comments" class="comment">
+          <div v-for="(comment, commentNum) in part.comments" class="comment">
             <div class="votes">
               <span class="upvote-icon">👍</span>
               <p>{{ comment.upvotes }}</p>
               <span class="downvote-icon">👎</span>
             </div>
             <div class="comment-content">
-              <h3>{{ comment.name }}</h3>
-              <p>{{ comment.comment }}</p>
+              <div class="comment-words">
+                <h3>{{ comment.name }}</h3>
+                <p>{{ comment.comment }}</p>
+              </div>
+              <n-button
+                @click="
+                  removeComment(number, key, story._id, part._id, comment._id)
+                "
+                :theme-overrides="buttonOverrides"
+                text
+              >
+                <n-icon size="18">
+                  <trash-alt></trash-alt>
+                </n-icon>
+              </n-button>
             </div>
           </div>
         </div>
@@ -71,9 +144,48 @@
     </template>
     <br />
     <br />
+    <div class="edit-area">
+      <h3>Add the next part of the story!</h3>
+      <n-input
+        type="textarea"
+        size="small"
+        v-model:value="newSection"
+        placeholder="Write!"
+        :autosize="{
+          minRows: 10,
+        }"
+        :theme="darkTheme"
+        :theme-overrides="themeOverrides"
+      />
+      <n-message-provider>
+        <n-dialog-provider>
+          <n-button
+            @click="submitAddition(story._id)"
+            ghost
+            color="rgb(189, 107, 0)"
+            >Submit addition</n-button
+          >
+        </n-dialog-provider>
+      </n-message-provider>
+    </div>
   </template>
-  <h2 @click="test()">Once Upon a Time</h2>
-  <h4>Part 1 ~ Jan 10, 2002</h4>
+  <!-- <div class="edit-area">
+    <h3>Add the next part of the story!</h3>
+    <n-input
+      type="textarea"
+      size="small"
+      v-model:value="newSection"
+      placeholder="Write!"
+      :autosize="{
+        minRows: 10,
+      }"
+      :theme="darkTheme"
+      :theme-overrides="themeOverrides"
+    />
+    <n-button @click="submitAddition()" ghost color="rgb(189, 107, 0)"
+      >Submit addition</n-button
+    >
+  </div> -->
 </template>
 
 <script>
@@ -83,17 +195,46 @@ import { NButton } from "naive-ui";
 import { NInput } from "naive-ui";
 import { darkTheme } from "naive-ui";
 import { data } from "../javascript/test";
+import { TrashAlt } from "@vicons/fa";
+import { Icon } from "@vicons/utils";
+import { NIcon } from "naive-ui";
+import { useMessage } from "naive-ui";
+import { NMessageProvider } from "naive-ui";
+import { NDialogProvider } from "naive-ui";
+import { NDropdown } from "naive-ui";
 // import { App } from "../App.vue";
 
 export default defineComponent({
   setup() {
+    // window.$message = useMessage();
     return {
+      info() {
+        message.info("helloooo");
+      },
       darkTheme,
     };
   },
   data() {
     return {
+      options: [
+        {
+          label: "Yuppp",
+          key: "yuppp",
+        },
+        {
+          label: "YAYYY",
+          key: "YAYYYY",
+        },
+      ],
       themeOverrides: this.$root.$data.themeOverrides,
+      buttonOverrides: {
+        textColorHover: "#E77F7FFF",
+        // textColorPressed: "#CE5A5AFF",
+        // textColorFocus: "#E77F7FFF",
+        textColorTextHover: "#E77F7FFF",
+        textColorTextPressed: "#FFFFFF",
+      },
+      newSection: "",
       // themeOverrides: {
       //   caretColor: "var(--accent-color)",
       //   boderColor: "var(--accent-color)",
@@ -115,11 +256,149 @@ export default defineComponent({
     //   this.$root.$emit("myemit");
     // },
   },
+  created() {
+    this.getData();
+  },
 
   methods: {
+    async getData() {
+      try {
+        // let response = await fetch("/api/data");
+        // response
+        let response = await fetch("http://localhost:3001/api/data");
+        let data = await response.json();
+        // console.log(data);
+        this.data = data[0];
+        return data[0];
+        // .then((response) => {
+        //   response.json();
+        //   console.log(JSON.stringify(response));
+        // })
+        // .then((data) => {
+        //   this.data = data;
+        //   console.log(data);
+        // })
+        // .catch((error) => console.log(error));
+        // this.items = response.data;
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    test: function () {
+      console.log("good here");
+    },
+    test2: function () {
+      console.log("Trying stuff");
+      this.$root.$data.refresh = true;
+      // console.log(typeof whooo);
+    },
     // please: function () {
     //   // this.$root.test();
     // },
+    downvoteSection(storyNum, sectionNum, storyId, sectionId) {
+      console.log("made it to upvote");
+      fetch(
+        `http://localhost:3001/api/data/parts/downvote/${storyId}/${sectionId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          // body: JSON.stringify(data),
+        }
+      )
+        .then(() => (this.data = this.getData()))
+
+        .catch((error) => {
+          console.log("Error:", error);
+        });
+    },
+    upvoteSection(storyNum, sectionNum, storyId, sectionId) {
+      console.log("made it to upvote");
+      fetch(
+        `http://localhost:3001/api/data/parts/upvote/${storyId}/${sectionId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          // body: JSON.stringify(data),
+        }
+      )
+        .then(() => (this.data = this.getData()))
+
+        .catch((error) => {
+          console.log("Error:", error);
+        });
+    },
+    updateSection(storyNum, sectionNum, storyId, sectionId) {
+      if (!this.isShown[storyNum][sectionNum].content) {
+        console.log("The story is empty!");
+        return;
+      }
+      if (this.isShown[storyNum][sectionNum].content.length < 200) {
+        alert("Story sections must be longer than 200 characters");
+        return;
+      }
+      let data = {
+        content: this.isShown[storyNum][sectionNum].content,
+      };
+      fetch(`http://localhost:3001/api/data/parts/${storyId}/${sectionId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      })
+        .then(() => (this.data = this.getData()))
+
+        .catch((error) => {
+          console.log("Error:", error);
+        });
+    },
+    removeComment(storyNum, sectionNum, storyId, sectionId, commentId) {
+      console.log("here");
+      fetch(
+        `http://localhost:3001/api/data/parts/${storyId}/${sectionId}/${commentId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            storyIndex: storyNum,
+            sectionIndex: sectionNum,
+          }),
+        }
+      )
+        .then(() => (this.data = this.getData()))
+
+        .catch((error) => {
+          console.log("Error:", error);
+        });
+    },
+    submitAddition(storyid) {
+      if (this.newSection.length < 200) {
+        alert("Story sections must be longer than 200 characters");
+        return;
+      }
+      if (!this.newSection) {
+        console.log("There's nothing here");
+      }
+
+      fetch(`http://localhost:3001/api/data/add/${storyid}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ content: this.newSection }),
+      })
+        .then(() => (this.data = this.getData()))
+
+        .catch((error) => {
+          console.log("Error:", error);
+        });
+    },
     addComment(storyNum, sectionNum, storyId, sectionId) {
       if (
         !this.isShown[storyNum][sectionNum].name ||
@@ -132,6 +411,10 @@ export default defineComponent({
         comment: this.isShown[storyNum][sectionNum].comment,
         upvotes: 0,
       };
+
+      this.isShown[storyNum][sectionNum].name = "";
+      this.isShown[storyNum][sectionNum].comment = "";
+
       // console.log(data);
       fetch(`http://localhost:3001/api/data/${storyId}/${sectionId}`, {
         method: "POST",
@@ -140,68 +423,42 @@ export default defineComponent({
         },
         body: JSON.stringify(data),
       })
-        .then((response) => resonse.json())
-        .then((data) => {
-          console.log("Success:", data);
-        })
+        .then(() => (this.data = this.getData()))
+
         .catch((error) => {
           console.log("Error:", error);
         });
-      // console.log("trying to update");
-      // this.$root.$emit("update-event");
-      // getData().then((response) => console.log(response));
-      // console.log("hopefully updated");
     },
-    // updateData: function () {
-    //   this.data = this.$root.updateData;
-    // },
-    // test(id) {
-    //   // console.log("hello");
-    //   // console.log(`data is ${this.$root.$data.values}`);
-    //   // console.log(`better data is ${this.$root.$data.theData}`);
-    //   // // console.log();
-    //   // const data = { name: "example" };
-    //   // console.log(this.data);
-    //   let data = { name: "bob", comment: "It worked!", upvotes: 20 };
-    //   console.log(id);
-    //   fetch(`http://localhost:3001/api/data/${id}/123`, {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //     },
-    //     body: JSON.stringify(data),
-    //   })
-    //     .then((response) => response.json())
-    //     .then((data) => {
-    //       console.log("Success:", data);
-    //     })
-    //     .catch((error) => {
-    //       console.error("Error:", error);
-    //     });
-    //   return;
-
-    //   fetch("http://localhost:3001/api/test", {
-    //     // mode: "no-cors",
-    //     method: "POST", // or 'PUT'
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //     },
-    //     body: JSON.stringify(data),
-    //   })
-    //     .then((response) => response.json())
-    //     .then((data) => {
-    //       console.log("Success:", data);
-    //     })
-    //     .catch((error) => {
-    //       console.error("Error:", error);
-    //     });
-    // },
+    toggleEdit(storyNum, part) {
+      if (!this.isShown[storyNum]) {
+        this.isShown[storyNum] = {};
+      }
+      if (!this.isShown[storyNum][part]) {
+        this.isShown[storyNum][part] = {
+          name: "",
+          comment: "",
+          show: false,
+          edit: true,
+          content: this.data.stories[storyNum].parts[part].content[0],
+        };
+        return;
+      }
+      this.isShown[storyNum][part].edit = !this.isShown[storyNum][part].edit;
+      return;
+    },
     addToShown(storyNum, part) {
       if (!this.isShown[storyNum]) {
         this.isShown[storyNum] = {};
       }
       if (!this.isShown[storyNum][part]) {
-        this.isShown[storyNum][part] = { name: "", comment: "", show: true };
+        console.log("making new shown entry");
+        this.isShown[storyNum][part] = {
+          name: "",
+          comment: "",
+          show: true,
+          edit: false,
+          content: this.data.stories[storyNum].parts[part].content[0],
+        };
         return;
       }
       this.isShown[storyNum][part].show = !this.isShown[storyNum][part].show;
@@ -210,8 +467,23 @@ export default defineComponent({
       console.log(this.isShown);
       return;
     },
+    checkIfEditing(storyNum, part) {
+      if (!this.isShown[storyNum]) {
+        return false;
+      }
+      if (!this.isShown[storyNum][part]) {
+        return false;
+      }
+      if (!this.isShown[storyNum][part].edit) {
+        return false;
+      }
+      return true;
+    },
     checkIfShown(storyNum, part) {
       if (!this.isShown[storyNum]) {
+        return false;
+      }
+      if (!this.isShown[storyNum][part]) {
         return false;
       }
       if (!this.isShown[storyNum][part].show) {
@@ -228,8 +500,14 @@ export default defineComponent({
   },
 
   components: {
+    NIcon,
+    Icon,
+    TrashAlt,
     NButton,
     NInput,
+    NMessageProvider,
+    NDialogProvider,
+    NDropdown,
   },
 });
 </script>
@@ -241,6 +519,18 @@ export default defineComponent({
   flex-direction: column;
   gap: 5px;
   /* justify-content: space-around; */
+}
+
+.edit-area {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.edit-area h3 {
+  color: var(--color-heading);
+  font-weight: 500;
 }
 .new-comment {
   display: flex;
@@ -270,6 +560,8 @@ export default defineComponent({
   border-color: var(--color-border-light);
   border-style: solid;
   width: 100%;
+  display: flex;
+  justify-content: space-between;
 }
 
 .comment-section h3 {
@@ -313,5 +605,10 @@ section {
 p {
   color: var(--color-story-text);
   line-height: 1.8rem;
+}
+
+.trash-icon :hover {
+  color: red;
+  transition: 20000ms;
 }
 </style>

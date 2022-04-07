@@ -1,5 +1,6 @@
 <script setup>
 import { RouterLink, RouterView } from "vue-router";
+import Footer from "./components/Footer.vue";
 import HelloWorld from "@/components/HelloWorld.vue";
 import { defineComponent } from "vue";
 </script>
@@ -16,11 +17,12 @@ import { defineComponent } from "vue";
 
     <div class="wrapper">
       <!-- <HelloWorld msg="You did it!" /> -->
-      <h1>Storywriter</h1>
+      <h1 @custom="test()">Storywriter</h1>
       <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-        <RouterLink to="/test">Test</RouterLink>
+        <RouterLink @click="getData()" to="/">Stories</RouterLink>
+        <RouterLink @click="getData()" to="/write">Write</RouterLink>
+        <!-- <RouterLink @click="getData()" to="/test">Stories</RouterLink> -->
+        <RouterLink @click="getData()" to="/about">About</RouterLink>
       </nav>
     </div>
   </header>
@@ -29,6 +31,7 @@ import { defineComponent } from "vue";
       <RouterView />
     </div>
   </div>
+  <Footer></Footer>
 </template>
 
 <script>
@@ -52,12 +55,20 @@ export default {
       //     .then((data) => console.log(data));
       //   return data;
       // },
+      refresh: false,
     };
   },
   created() {
     this.getData();
     // .then((data) => console.log(JSON.stringify(data)));
   },
+
+  computed: {
+    test3() {
+      console.log("hello");
+    },
+  },
+
   methods: {
     // test: function () {
     //   console.log("in test");
@@ -82,7 +93,6 @@ export default {
         // })
         // .catch((error) => console.log(error));
         // this.items = response.data;
-        return true;
       } catch (error) {
         console.log(error);
       }
@@ -95,14 +105,6 @@ export default {
       console.log("did it work");
     },
   },
-  // computed: {
-  //   theData: function () {
-  //     let data = fetch("http://localhost:3001/api/data")
-  //       .then((response) => response.json())
-  //       .then((data) => console.log(data));
-  //     return data;
-  //   },
-  // },
 };
 
 // export default defineComponent({});
