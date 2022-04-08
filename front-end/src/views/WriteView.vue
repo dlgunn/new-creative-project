@@ -60,7 +60,7 @@ export default defineComponent({
     addStory() {
       console.log("hiiii");
       try {
-        fetch("http://localhost:3001/api/data/newstory", {
+        fetch("/api/data/newstory", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
