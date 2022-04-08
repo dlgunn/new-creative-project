@@ -245,7 +245,7 @@ import { data } from "../javascript/test";
 import { TrashAlt } from "@vicons/fa";
 import { Icon } from "@vicons/utils";
 import { NIcon } from "naive-ui";
-import { useMessage } from "naive-ui";
+// import { useMessage } from "naive-ui";
 import { NMessageProvider } from "naive-ui";
 import { NDialogProvider } from "naive-ui";
 import { NDropdown } from "naive-ui";
@@ -379,7 +379,7 @@ export default defineComponent({
       try {
         // let response = await fetch("/api/data");
         // response
-        let response = await fetch("http://localhost:3001/api/data");
+        let response = await fetch("/api/data");
         let data = await response.json();
         this.setSelection();
         // console.log(data);
@@ -406,31 +406,25 @@ export default defineComponent({
     //   // this.$root.test();
     // },
     downvoteSection(storyNum, sectionNum, storyId, sectionId) {
-      fetch(
-        `http://localhost:3001/api/data/parts/downvote/${storyId}/${sectionId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          // body: JSON.stringify(data),
-        }
-      ).catch((error) => {
+      fetch(`/api/data/parts/downvote/${storyId}/${sectionId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        // body: JSON.stringify(data),
+      }).catch((error) => {
         console.log("Error:", error);
       });
       this.data.stories[storyNum].parts[sectionNum].downvotes++;
     },
     upvoteSection(storyNum, sectionNum, storyId, sectionId) {
-      fetch(
-        `http://localhost:3001/api/data/parts/upvote/${storyId}/${sectionId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          // body: JSON.stringify(data),
-        }
-      ).catch((error) => {
+      fetch(`/api/data/parts/upvote/${storyId}/${sectionId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        // body: JSON.stringify(data),
+      }).catch((error) => {
         console.log("Error:", error);
       });
       this.data.stories[storyNum].parts[sectionNum].upvotes++;
@@ -447,7 +441,7 @@ export default defineComponent({
       let data = {
         content: this.isShown[storyNum][sectionNum].content,
       };
-      fetch(`http://localhost:3001/api/data/parts/${storyId}/${sectionId}`, {
+      fetch(`/api/data/parts/${storyId}/${sectionId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -470,19 +464,16 @@ export default defineComponent({
       commentId
     ) {
       console.log("here");
-      fetch(
-        `http://localhost:3001/api/data/parts/${storyId}/${sectionId}/${commentId}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            storyIndex: storyNum,
-            sectionIndex: sectionNum,
-          }),
-        }
-      )
+      fetch(`/api/data/parts/${storyId}/${sectionId}/${commentId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          storyIndex: storyNum,
+          sectionIndex: sectionNum,
+        }),
+      })
         .then(() => {})
         .catch((error) => {
           console.log("Error:", error);
@@ -501,7 +492,7 @@ export default defineComponent({
         console.log("There's nothing here");
       }
 
-      fetch(`http://localhost:3001/api/data/add/${storyid}`, {
+      fetch(`/api/data/add/${storyid}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -532,7 +523,7 @@ export default defineComponent({
       // this.isShown[this.indexOfStory][key].name = "";
 
       // console.log(data);
-      fetch(`http://localhost:3001/api/data/${storyId}/${sectionId}`, {
+      fetch(`/api/data/${storyId}/${sectionId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -565,7 +556,6 @@ export default defineComponent({
         this.isShown[storyNum] = {};
       }
       if (!this.isShown[storyNum][part]) {
-        console.log("making new shown entry");
         this.isShown[storyNum][part] = {
           name: "",
           comment: "",
