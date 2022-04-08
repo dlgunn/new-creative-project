@@ -1,13 +1,16 @@
 <template>
-  <n-dropdown
-    trigger="hover"
-    :options="options"
-    @select="changeSelection"
-    :theme="darkTheme"
-  >
-    <n-button ghost color="rgb(189, 107, 0)">Select Story</n-button>
-  </n-dropdown>
-  <h2>{{ data.stories[indexOfStory].title }}</h2>
+  <div class="top-part">
+    <h2>{{ data.stories[indexOfStory].title }}</h2>
+
+    <n-dropdown
+      trigger="hover"
+      :options="options"
+      @select="changeSelection"
+      :theme="darkTheme"
+    >
+      <n-button ghost color="rgb(189, 107, 0)">Select Story</n-button>
+    </n-dropdown>
+  </div>
 
   <template v-for="(part, key) in data.stories[indexOfStory].parts">
     <h4>Part {{ key + 1 }}</h4>
@@ -624,6 +627,12 @@ export default defineComponent({
 </script>
 
 <style scoped>
+.top-part {
+  display: flex;
+  gap: 30px;
+  align-items: center;
+  /* justify-content: space-between; */
+}
 .comment-input {
   width: 100%;
   display: flex;

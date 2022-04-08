@@ -51,29 +51,29 @@ const dataSchema = new mongoose.Schema({
 });
 
 const Data = mongoose.model("Data", dataSchema);
-// const Story = mongoose.model("Story", storySchema);
-// const data = new Data({
-//   stories: [
-//     {
-//       title: "TestStoryTitle",
-//       parts: [
-//         {
-//           date: "Jan 10, 2002",
-//           content: ["Test paragraph"],
-//           comments: [
-//             {
-//               name: "Test name",
-//               comment: "Test comment content",
-//               upvotes: 12,
-//             },
-//           ],
-//           upvotes: 33,
-//           downvotes: 2,
-//         },
-//       ],
-//     },
-//   ],
-// });
+const Story = mongoose.model("Story", storySchema);
+const data = new Data({
+  stories: [
+    {
+      title: "Once Upon A Time",
+      parts: [
+        {
+          date: "Jan 10, 2002",
+          content: ["Test paragraph"],
+          comments: [
+            {
+              name: "Test name",
+              comment: "Test comment content",
+              upvotes: 12,
+            },
+          ],
+          upvotes: 33,
+          downvotes: 2,
+        },
+      ],
+    },
+  ],
+});
 
 // console.log(data);
 // data.save();
@@ -82,8 +82,7 @@ app.delete(
   "/api/data/parts/:storyid/:sectionid/:commentid",
   async (req, res) => {
     try {
-      console.log("In delete");
-      console.log(req.params.commentid);
+      // console.log(req.params.commentid);
       // console.log(req.body.story);
       // let part = {
       //   content: req.body.content,
