@@ -48,61 +48,61 @@ export default {
         boxShadowFocus: "0 0 8px 0 var(--accent-color)",
         border: "0px solid #000000",
       },
-      data: {},
+      // data: {},
       // values: async () => {
       //   let data = await fetch("http://localhost:3001/api/data")
       //     .then((response) => response.json())
       //   return data;
       // },
-      refresh: false,
+      // refresh: false,
     };
   },
-  created() {
-    this.getData();
-    // .then((data) => console.log(JSON.stringify(data)));
-  },
+  // created() {
+  //   this.getData();
+  //   // .then((data) => console.log(JSON.stringify(data)));
+  // },
 
-  computed: {
-    test3() {
-      console.log("hello");
-    },
-  },
+  // computed: {
+  //   test3() {
+  //     console.log("hello");
+  //   },
+  // },
 
   methods: {
     // test: function () {
     //   console.log("in test");
     //   this.getData();
     // },
-    async getData() {
-      try {
-        // let response = await fetch("/api/data");
-        // response
-        let response = await fetch("http://localhost:3001/api/data");
-        let data = await response.json();
-        // console.log(data);
-        this.data = data[0];
-        return this.data;
-        // .then((response) => {
-        //   response.json();
-        //   console.log(JSON.stringify(response));
-        // })
-        // .then((data) => {
-        //   this.data = data;
-        //   console.log(data);
-        // })
-        // .catch((error) => console.log(error));
-        // this.items = response.data;
-      } catch (error) {
-        console.log(error);
-      }
-    },
-    updateData: function () {
-      console.log("in the updateData function");
-      return this.getData();
-    },
-    testFunction: function () {
-      console.log("did it work");
-    },
+    // async getData() {
+    //   try {
+    //     // let response = await fetch("/api/data");
+    //     // response
+    //     let response = await fetch("http://localhost:3001/api/data");
+    //     let data = await response.json();
+    //     // console.log(data);
+    //     this.data = data[0];
+    //     return this.data;
+    //     // .then((response) => {
+    //     //   response.json();
+    //     //   console.log(JSON.stringify(response));
+    //     // })
+    //     // .then((data) => {
+    //     //   this.data = data;
+    //     //   console.log(data);
+    //     // })
+    //     // .catch((error) => console.log(error));
+    //     // this.items = response.data;
+    //   } catch (error) {
+    //     console.log(error);
+    //   }
+    // },
+    // updateData: function () {
+    //   console.log("in the updateData function");
+    //   return this.getData();
+    // },
+    // testFunction: function () {
+    //   console.log("did it work");
+    // },
   },
 };
 
