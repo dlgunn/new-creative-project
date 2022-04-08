@@ -2,173 +2,206 @@
   <n-dropdown
     trigger="hover"
     :options="options"
-    @select="handlesSelect"
+    @select="changeSelection"
     :theme="darkTheme"
   >
-    <n-button
-      @click="upvoteSection(number, key, story._id, part._id)"
-      ghost
-      color="rgb(189, 107, 0)"
-      >Select Story</n-button
-    >
+    <n-button ghost color="rgb(189, 107, 0)">Select Story</n-button>
   </n-dropdown>
-  <template v-for="(story, number) in data.stories">
-    <h2>{{ story.title }}</h2>
-    <template v-for="(part, key) in story.parts">
-      <h4>Part {{ key + 1 }}</h4>
-      <section>
-        <p v-for="paragraph in part.content">{{ paragraph }}</p>
-      </section>
-      <div class="options">
-        <p>
-          <n-button
-            @click="upvoteSection(number, key, story._id, part._id)"
-            text
-            ghost
-            color="rgb(189, 107, 0)"
-            >👍</n-button
-          >{{ part.upvotes }}
-          <n-button
-            @click="downvoteSection(number, key, story._id, part._id)"
-            text
-            ghost
-            color="rgb(189, 107, 0)"
-            >👎</n-button
-          >{{ part.downvotes }}
-        </p>
+  <h2>{{ data.stories[indexOfStory].title }}</h2>
 
+  <template v-for="(part, key) in data.stories[indexOfStory].parts">
+    <h4>Part {{ key + 1 }}</h4>
+    <section>
+      <p v-for="paragraph in part.content">{{ paragraph }}</p>
+    </section>
+    <div class="options">
+      <p>
         <n-button
-          @click="addToShown(number, key)"
+          @click="
+            upvoteSection(
+              indexOfStory,
+              key,
+              data.stories[indexOfStory]._id,
+              part._id
+            )
+          "
+          text
           ghost
           color="rgb(189, 107, 0)"
-          >{{ commentKey(checkIfShown(number, key)) }} Comments</n-button
-        >
-        <!-- <n-button
-          @click="addSection(number, key)"
+          >👍</n-button
+        >{{ part.upvotes }}
+        <n-button
+          @click="
+            downvoteSection(
+              indexOfStory,
+              key,
+              data.stories[indexOfStory]._id,
+              part._id
+            )
+          "
+          text
+          ghost
+          color="rgb(189, 107, 0)"
+          >👎</n-button
+        >{{ part.downvotes }}
+      </p>
+
+      <n-button
+        @click="addToShown(indexOfStory, key)"
+        ghost
+        color="rgb(189, 107, 0)"
+        >{{ commentKey(checkIfShown(indexOfStory, key)) }} Comments</n-button
+      >
+      <!-- <n-button
+          @click="addSection(indexOfStory), key)"
           ghost
           color="rgb(189, 107, 0)"
           >Add to Story</n-button
         > -->
+      <n-button
+        @click="toggleEdit(indexOfStory, key)"
+        ghost
+        color="rgb(189, 107, 0)"
+        >{{
+          checkIfEditing(indexOfStory, key) ? "Hide edit" : "Edit part"
+        }}</n-button
+      >
+    </div>
+    <template v-if="checkIfEditing(indexOfStory, key)">
+      <div class="edit-area">
+        <h3>Edit</h3>
+        <n-input
+          type="textarea"
+          size="small"
+          @blur="updateEditing($event, key)"
+          :default-value="part.content"
+          placeholder="Write!"
+          :autosize="{
+            minRows: 8,
+          }"
+          :theme="darkTheme"
+          :theme-overrides="themeOverrides"
+        />
         <n-button
-          @click="toggleEdit(number, key)"
+          @click="
+            updateSection(
+              indexOfStory,
+              key,
+              data.stories[indexOfStory]._id,
+              part._id
+            )
+          "
           ghost
           color="rgb(189, 107, 0)"
-          >{{
-            checkIfEditing(number, key) ? "Hide edit" : "Edit part"
-          }}</n-button
+          >Post Edit!</n-button
         >
       </div>
-      <template v-if="checkIfEditing(number, key)">
-        <div class="edit-area">
-          <h3>Edit</h3>
-          <n-input
-            type="textarea"
-            size="small"
-            v-model:value="isShown[number][key].content"
-            placeholder="Write!"
-            :autosize="{
-              minRows: 10,
-            }"
-            :theme="darkTheme"
-            :theme-overrides="themeOverrides"
-          />
-          <n-button
-            @click="updateSection(number, key, story._id, part._id)"
-            ghost
-            color="rgb(189, 107, 0)"
-            >Post Edit!</n-button
-          >
-        </div>
-      </template>
-      <template v-if="checkIfShown(number, key)">
-        <div class="comment-section">
-          <h3>Comments</h3>
-          <div class="new-comment">
-            <div class="comment-input">
-              <n-input
-                size="small"
-                v-model:value="isShown[number][key].name"
-                type="text"
-                placeholder="Name"
-                :theme="darkTheme"
-                :theme-overrides="themeOverrides"
-              />
-              <!-- <p></p> -->
-              <!-- <br /> -->
-              <n-input
-                type="textarea"
-                size="small"
-                v-model:value="isShown[number][key].comment"
-                placeholder="Write a Comment"
-                :autosize="{
-                  minRows: 3,
-                }"
-                :theme="darkTheme"
-                :theme-overrides="themeOverrides"
-              />
-              <n-button
-                @click="addComment(number, key, story._id, part._id)"
-                ghost
-                color="rgb(189, 107, 0)"
-                >Submit</n-button
-              >
-            </div>
-          </div>
-
-          <div v-for="(comment, commentNum) in part.comments" class="comment">
-            <div class="votes">
-              <span class="upvote-icon">👍</span>
-              <p>{{ comment.upvotes }}</p>
-              <span class="downvote-icon">👎</span>
-            </div>
-            <div class="comment-content">
-              <div class="comment-words">
-                <h3>{{ comment.name }}</h3>
-                <p>{{ comment.comment }}</p>
-              </div>
-              <n-button
-                @click="
-                  removeComment(number, key, story._id, part._id, comment._id)
-                "
-                :theme-overrides="buttonOverrides"
-                text
-              >
-                <n-icon size="18">
-                  <trash-alt></trash-alt>
-                </n-icon>
-              </n-button>
-            </div>
-          </div>
-        </div>
-      </template>
     </template>
-    <br />
-    <br />
-    <div class="edit-area">
-      <h3>Add the next part of the story!</h3>
-      <n-input
-        type="textarea"
-        size="small"
-        v-model:value="newSection"
-        placeholder="Write!"
-        :autosize="{
-          minRows: 10,
-        }"
-        :theme="darkTheme"
-        :theme-overrides="themeOverrides"
-      />
-      <n-message-provider>
-        <n-dialog-provider>
-          <n-button
-            @click="submitAddition(story._id)"
-            ghost
-            color="rgb(189, 107, 0)"
-            >Submit addition</n-button
-          >
-        </n-dialog-provider>
-      </n-message-provider>
-    </div>
+    <template v-if="checkIfShown(indexOfStory, key)">
+      <div class="comment-section">
+        <h3>Comments</h3>
+        <div class="new-comment">
+          <div class="comment-input">
+            <n-input
+              size="small"
+              @blur="updateName($event, key)"
+              type="text"
+              placeholder="Name"
+              :theme="darkTheme"
+              :theme-overrides="themeOverrides"
+            />
+            <!-- <p></p> -->
+            <!-- <br /> -->
+            <n-input
+              type="textarea"
+              size="small"
+              @blur="updateComment($event.target.value, key)"
+              placeholder="Write a Comment"
+              :autosize="{
+                minRows: 3,
+              }"
+              :theme="darkTheme"
+              :theme-overrides="themeOverrides"
+            />
+            <n-button
+              @click="
+                addComment(
+                  indexOfStory,
+                  key,
+                  data.stories[indexOfStory]._id,
+                  part._id,
+                  $event
+                )
+              "
+              ghost
+              color="rgb(189, 107, 0)"
+              >Submit</n-button
+            >
+          </div>
+        </div>
+
+        <div v-for="(comment, commentNum) in part.comments" class="comment">
+          <div class="votes">
+            <span class="upvote-icon">👍</span>
+            <p>{{ comment.upvotes }}</p>
+            <span class="downvote-icon">👎</span>
+          </div>
+          <div class="comment-content">
+            <div class="comment-words">
+              <h3>{{ comment.name }}</h3>
+              <p>{{ comment.comment }}</p>
+            </div>
+            <n-button
+              @click="
+                removeComment(
+                  indexOfStory,
+                  key,
+                  commentNum,
+                  data.stories[indexOfStory]._id,
+                  part._id,
+                  comment._id
+                )
+              "
+              :theme-overrides="buttonOverrides"
+              text
+            >
+              <n-icon size="18">
+                <trash-alt></trash-alt>
+              </n-icon>
+            </n-button>
+          </div>
+        </div>
+      </div>
+    </template>
   </template>
+  <div class="edit-area">
+    <h3>Add the next part of the story!</h3>
+    <n-input
+      type="textarea"
+      size="small"
+      v-model.lazy:value="newSection"
+      placeholder="Write!"
+      :autosize="{
+        minRows: 10,
+      }"
+      :theme="darkTheme"
+      :theme-overrides="themeOverrides"
+    />
+    <n-message-provider>
+      <n-dialog-provider>
+        <n-button
+          @click="submitAddition(data.stories[indexOfStory]._id)"
+          ghost
+          color="rgb(189, 107, 0)"
+          >Submit addition</n-button
+        >
+      </n-dialog-provider>
+    </n-message-provider>
+  </div>
+
+  <!-- <br /> -->
+  <!-- <br /> -->
+
   <!-- <div class="edit-area">
     <h3>Add the next part of the story!</h3>
     <n-input
@@ -216,16 +249,18 @@ export default defineComponent({
   },
   data() {
     return {
-      options: [
-        {
-          label: "Yuppp",
-          key: "yuppp",
-        },
-        {
-          label: "YAYYY",
-          key: "YAYYYY",
-        },
-      ],
+      // options: [
+      //   {
+      //     label: "Yuppp",
+      //     key: "yuppp",
+      //   },
+      //   {
+      //     label: "YAYYY",
+      //     key: "YAYYYY",
+      //   },
+      // ],
+      test: "",
+      options: [],
       themeOverrides: this.$root.$data.themeOverrides,
       buttonOverrides: {
         textColorHover: "#E77F7FFF",
@@ -248,27 +283,101 @@ export default defineComponent({
       data,
       isShown: {},
       tempCommentVals: [],
+      selection: "",
+      indexOfStory: 0,
     };
   },
   computed: {
+    // indexOfStory() {
+    //   let index = this.data.stories.findIndex((story) => {
+    //     console.log(story._id);
+    //     return story._id == this.selection;
+    //   });
+    //   console.log(`Index is ${index}`);
+    //   return index;
+    // },
     // storyData: function () {
     //   // console.log(this.$root.$data.data);
     //   this.$root.$emit("myemit");
     // },
+    // options: async function () {
+    //   let tempData = await this.getData();
+    //   let array = [];
+    //   for (let story in tempData.stories) {
+    //     array.push({ label: story.title, key: story.title });
+    //   }
+    //   return array;
+    // },
   },
   created() {
     this.getData();
+    // this.getOptions();
+    // this.setSelection();
   },
 
   methods: {
+    editValue(indexOfStory, key) {
+      return this.isShown[indexOfStory][key].content;
+    },
+    updateName(event, key) {
+      this.isShown[this.indexOfStory][key].name = event.target.value;
+      console.log(event.target.value);
+    },
+    updateEditing(event, key) {
+      this.isShown[this.indexOfStory][key].content = event.target.value;
+    },
+    updateComment(value, key) {
+      this.isShown[this.indexOfStory][key].comment = value;
+    },
+    setSelection() {
+      console.log(`data is`);
+      console.log(this.data);
+      console.log(this.data.stories);
+      if (!this.data.stories[0]) {
+        console.log("Nothing here");
+        return;
+      }
+      if (!this.data.stories[0]._id) {
+        console.log("no id");
+        return;
+      }
+      this.selection = this.data.stories[0]._id;
+      let index = this.data.stories.findIndex((story) => {
+        console.log(story._id);
+        return story._id == this.selection;
+      });
+      this.indexOfStory = index;
+    },
+    changeSelection(key, num) {
+      this.selection = key;
+      console.log(key);
+      let index = this.data.stories.findIndex((story) => {
+        console.log(story._id);
+        return story._id == this.selection;
+      });
+      this.indexOfStory = index;
+    },
+    getOptions() {
+      let tempData = this.data;
+      let array = [];
+      console.log(tempData);
+      tempData.stories.forEach((story) =>
+        array.push({ label: story.title, key: story._id })
+      );
+      this.options = array;
+    },
     async getData() {
       try {
         // let response = await fetch("/api/data");
         // response
         let response = await fetch("http://localhost:3001/api/data");
         let data = await response.json();
+        this.setSelection();
         // console.log(data);
         this.data = data[0];
+        this.getOptions();
+        this.setSelection();
+
         return data[0];
         // .then((response) => {
         //   response.json();
@@ -283,14 +392,6 @@ export default defineComponent({
       } catch (error) {
         console.log(error);
       }
-    },
-    test: function () {
-      console.log("good here");
-    },
-    test2: function () {
-      console.log("Trying stuff");
-      this.$root.$data.refresh = true;
-      // console.log(typeof whooo);
     },
     // please: function () {
     //   // this.$root.test();
@@ -349,14 +450,22 @@ export default defineComponent({
           "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
-      })
-        .then(() => (this.data = this.getData()))
-
-        .catch((error) => {
-          console.log("Error:", error);
-        });
+      }).catch((error) => {
+        console.log("Error:", error);
+      });
+      this.data.stories[storyNum].parts[sectionNum].content = [
+        this.isShown[storyNum][sectionNum].content,
+      ];
+      this.toggleEdit(storyNum, sectionNum);
     },
-    removeComment(storyNum, sectionNum, storyId, sectionId, commentId) {
+    removeComment(
+      storyNum,
+      sectionNum,
+      commentNum,
+      storyId,
+      sectionId,
+      commentId
+    ) {
       console.log("here");
       fetch(
         `http://localhost:3001/api/data/parts/${storyId}/${sectionId}/${commentId}`,
@@ -371,11 +480,14 @@ export default defineComponent({
           }),
         }
       )
-        .then(() => (this.data = this.getData()))
-
+        .then(() => {})
         .catch((error) => {
           console.log("Error:", error);
         });
+      this.data.stories[storyNum].parts[sectionNum].comments.splice(
+        commentNum,
+        1
+      );
     },
     submitAddition(storyid) {
       if (this.newSection.length < 200) {
@@ -399,21 +511,23 @@ export default defineComponent({
           console.log("Error:", error);
         });
     },
-    addComment(storyNum, sectionNum, storyId, sectionId) {
+    addComment(storyNum, sectionNum, storyId, sectionId, event) {
+      console.log("Adding Comment");
       if (
         !this.isShown[storyNum][sectionNum].name ||
         !this.isShown[storyNum][sectionNum].comment
       ) {
         return;
       }
+      console.log("hello");
       let data = {
         name: this.isShown[storyNum][sectionNum].name,
         comment: this.isShown[storyNum][sectionNum].comment,
         upvotes: 0,
       };
 
-      this.isShown[storyNum][sectionNum].name = "";
-      this.isShown[storyNum][sectionNum].comment = "";
+      // this.isShown[this.indexOfStory][key].comment = "";
+      // this.isShown[this.indexOfStory][key].name = "";
 
       // console.log(data);
       fetch(`http://localhost:3001/api/data/${storyId}/${sectionId}`, {
@@ -422,12 +536,10 @@ export default defineComponent({
           "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
-      })
-        .then(() => (this.data = this.getData()))
-
-        .catch((error) => {
-          console.log("Error:", error);
-        });
+      }).catch((error) => {
+        console.log("Error:", error);
+      });
+      this.data.stories[storyNum].parts[sectionNum].comments.unshift(data);
     },
     toggleEdit(storyNum, part) {
       if (!this.isShown[storyNum]) {

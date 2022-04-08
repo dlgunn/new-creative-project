@@ -17,12 +17,12 @@ import { defineComponent } from "vue";
 
     <div class="wrapper">
       <!-- <HelloWorld msg="You did it!" /> -->
-      <h1 @custom="test()">Storywriter</h1>
+      <h1>Storywriter</h1>
       <nav>
-        <RouterLink @click="getData()" to="/">Stories</RouterLink>
-        <RouterLink @click="getData()" to="/write">Write</RouterLink>
+        <RouterLink to="/">Stories</RouterLink>
+        <RouterLink to="/write">Write</RouterLink>
         <!-- <RouterLink @click="getData()" to="/test">Stories</RouterLink> -->
-        <RouterLink @click="getData()" to="/about">About</RouterLink>
+        <RouterLink to="/about">About</RouterLink>
       </nav>
     </div>
   </header>
