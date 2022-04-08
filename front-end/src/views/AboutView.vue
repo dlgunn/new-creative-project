@@ -23,6 +23,7 @@
     </p>
     <h2>What else should I do?</h2>
     <p>hahaha give me all your money</p>
+    <p>Also go write your own story! But don't make it stupid</p>
   </div>
 </template>
 
