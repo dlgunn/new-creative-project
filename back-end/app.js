@@ -202,7 +202,7 @@ app.post("/api/data/newstory", async (req, res) => {
       //   arrayFilters: [{ "n._id": req.params.storyid }],
       // }
     );
-    res.sendStatus(500);
+    res.sendStatus(200);
   } catch (error) {
     console.log(error);
     res.sendStatus(500);

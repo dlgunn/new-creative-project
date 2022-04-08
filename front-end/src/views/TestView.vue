@@ -142,9 +142,20 @@
 
         <div v-for="(comment, commentNum) in part.comments" class="comment">
           <div class="votes">
-            <span class="upvote-icon">👍</span>
+            <!-- <span
+              @click="
+                upvoteComment(
+                  indexOfStory,
+                  key,
+                  data.stories[indexOfStory]._id,
+                  part._id
+                )
+              "
+              class="upvote-icon"
+              >👍</span
+            >
             <p>{{ comment.upvotes }}</p>
-            <span class="downvote-icon">👎</span>
+            <span class="downvote-icon">👎</span> -->
           </div>
           <div class="comment-content">
             <div class="comment-words">
@@ -179,7 +190,7 @@
     <n-input
       type="textarea"
       size="small"
-      v-model.lazy:value="newSection"
+      @blur="addSection($event)"
       placeholder="Write!"
       :autosize="{
         minRows: 10,
@@ -329,30 +340,26 @@ export default defineComponent({
     updateComment(value, key) {
       this.isShown[this.indexOfStory][key].comment = value;
     },
+    addSection(event) {
+      this.newSection = event.target.value;
+    },
     setSelection() {
-      console.log(`data is`);
-      console.log(this.data);
-      console.log(this.data.stories);
       if (!this.data.stories[0]) {
         console.log("Nothing here");
         return;
       }
       if (!this.data.stories[0]._id) {
-        console.log("no id");
         return;
       }
       this.selection = this.data.stories[0]._id;
       let index = this.data.stories.findIndex((story) => {
-        console.log(story._id);
         return story._id == this.selection;
       });
       this.indexOfStory = index;
     },
     changeSelection(key, num) {
       this.selection = key;
-      console.log(key);
       let index = this.data.stories.findIndex((story) => {
-        console.log(story._id);
         return story._id == this.selection;
       });
       this.indexOfStory = index;
@@ -360,7 +367,6 @@ export default defineComponent({
     getOptions() {
       let tempData = this.data;
       let array = [];
-      console.log(tempData);
       tempData.stories.forEach((story) =>
         array.push({ label: story.title, key: story._id })
       );
@@ -397,7 +403,6 @@ export default defineComponent({
     //   // this.$root.test();
     // },
     downvoteSection(storyNum, sectionNum, storyId, sectionId) {
-      console.log("made it to upvote");
       fetch(
         `http://localhost:3001/api/data/parts/downvote/${storyId}/${sectionId}`,
         {
@@ -407,15 +412,12 @@ export default defineComponent({
           },
           // body: JSON.stringify(data),
         }
-      )
-        .then(() => (this.data = this.getData()))
-
-        .catch((error) => {
-          console.log("Error:", error);
-        });
+      ).catch((error) => {
+        console.log("Error:", error);
+      });
+      this.data.stories[storyNum].parts[sectionNum].downvotes++;
     },
     upvoteSection(storyNum, sectionNum, storyId, sectionId) {
-      console.log("made it to upvote");
       fetch(
         `http://localhost:3001/api/data/parts/upvote/${storyId}/${sectionId}`,
         {
@@ -425,12 +427,10 @@ export default defineComponent({
           },
           // body: JSON.stringify(data),
         }
-      )
-        .then(() => (this.data = this.getData()))
-
-        .catch((error) => {
-          console.log("Error:", error);
-        });
+      ).catch((error) => {
+        console.log("Error:", error);
+      });
+      this.data.stories[storyNum].parts[sectionNum].upvotes++;
     },
     updateSection(storyNum, sectionNum, storyId, sectionId) {
       if (!this.isShown[storyNum][sectionNum].content) {
@@ -505,8 +505,7 @@ export default defineComponent({
         },
         body: JSON.stringify({ content: this.newSection }),
       })
-        .then(() => (this.data = this.getData()))
-
+        .then(() => window.location.reload())
         .catch((error) => {
           console.log("Error:", error);
         });
