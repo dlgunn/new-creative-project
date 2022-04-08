@@ -52,7 +52,6 @@ export default {
       // values: async () => {
       //   let data = await fetch("http://localhost:3001/api/data")
       //     .then((response) => response.json())
-      //     .then((data) => console.log(data));
       //   return data;
       // },
       refresh: false,
